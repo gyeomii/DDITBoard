@@ -1,0 +1,70 @@
+@CHARSET "UTF-8";
+
+/*글쓰기 관련*/
+#wrt {
+  margin-left: 40px;
+}
+#send {
+  margin-left: 500px;
+}
+/*modal 항목 너비조절 */
+.col-sm-2 {
+  padding: 0px;
+}
+/*검색 관련*/
+#keyword {
+  width: 50%;
+  display: inline-block;
+}
+#srch {
+  margin-left: 50%;
+}
+/*목록 관련*/
+#list {
+  padding: 10px;
+  margin: 10px;	
+}
+p {
+  padding: 5px;
+  margin: 10px;
+	/* box-sizing 속성은 요소의 너비와 높이를 계산하는 방법을 지정합니다. */
+	/* content-box : 너비 100px 설정시 콘텐츠 영역이 100px 너비를 가지고, 테두리와 안쪽 여백이 더해짐 */
+	/* border-box : 테두리와 안쪽 여백의 크기도 요소의 크기로 고려, 총 너비 100 픽셀을 유지 */
+	/* margin 미포함 */
+  box-sizing: border-box;	
+}
+.p1 {
+  float: left;
+  width: calc(65% - 1%);
+}
+.p2 {
+  float: right;
+  width: calc(25% - 1%);
+  text-align: right		/* 또는 end */
+}
+.p3 {
+  clear: both;
+}
+/*페이지 관련*/
+.container {
+  margin-left: 40%;
+}
+.pager {
+  float: left;
+  margin: 5px;
+}
+.rep {
+  border: lightgray 2px dashed;
+  margin:10px;
+}
+input[value="등록"] {
+  margin: 10px;
+  vertical-align: bottom
+}
+#brdModiForm, #repModiForm {
+  display: none;
+}
+/*input[name*='modify']{
+	background: yellow;
+	border-radius: 25%;
+}*/

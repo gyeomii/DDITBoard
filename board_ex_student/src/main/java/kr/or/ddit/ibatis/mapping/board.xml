@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE sqlMap
+			PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+			"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+			
+			
+<sqlMap namespace="board">
+	<!-- 
+		resultClass/parameterClass	: int, string 등 원시클래스 값을 DB에 넣을 때 사용(패키지를 포함하는 전체 경로 지정) 
+ 		resultMap/parameterMap		: 객체를 DB에 넣을 때 사용. 값을 beans(map)에 매핑시켜 줌
+	 -->
+
+	<!-- 전체 글 갯수 조회 -->
+	<select id="countList" resultClass="int" parameterClass="string">
+	  SELECT COUNT(*) FROM BOARD
+	  	<isNotEmpty>
+         	WHERE SUBJECT LIKE '%' || #keyword# || '%' 
+ 			OR        
+      		WRITER LIKE '%' || #keyword# || '%'
+         	OR
+         	CONTENT LIKE '%' || #keyword# || '%' 
+        </isNotEmpty>
+	</select>
+
+	<!-- 리스트 출력 -->
+	<select id="boardList" resultClass="boardVO" parameterClass="map">
+	  SELECT A.* FROM (
+    	SELECT ROWNUM AS RNUM, B.*  FROM (
+         	SELECT * FROM BOARD
+         <isNotEmpty property="keyword">
+         	WHERE SUBJECT LIKE '%' || #keyword# || '%' 
+ 			OR
+      		WRITER LIKE '%' || #keyword# || '%'
+         	OR 
+         	CONTENT LIKE '%' || #keyword# || '%' 
+         </isNotEmpty>
+         	ORDER BY NUM DESC) B
+		<!--
+			조건식에 사용되는 기호가 태그로 인식되지 않도록 		 
+			파싱하지않고 문자열 그대로 인식하도록 하는 문자데이터(character data)
+		-->
+	<![CDATA[
+     	WHERE ROWNUM <= #end#) A 
+ 	  WHERE A.RNUM >= #start#
+	]]>
+	</select>
+	
+	<!-- 
+		오라클은 자동증가컬럼을 사용할 수 없고, MAX(컬럼)+1 또는 시쿼스를 사용하여 일련번호를 부여한다
+		
+		시퀀스 옵션
+		INCREMENT BY 1		증가 값(1씩 증가)
+		START WITH 1		시작 값
+		MINVALUE 1			최소 값
+		MAXVALUE 9999		최대 값
+		NOCYCLE|CYCLE		반복안함 | 최대 값 도달시 시작값부터 다시 반복 사용 여부
+		NOCACHE|CACHE		사용안함 | ACHE 사용 여부
+		NOORDER|ORDER		사용안함 | 요청 순서대로 값 생성할지 여부
+		
+		CACHE : 캐시를 사용하면 미리 값을 할당해 놓고 사용하므로 속도가 빠르며 동시 사용자가 많을 경우 유리한 장점
+		ㄴ옵션 사용시 속도 증가를 위해 시퀀스 번호를 한번에 여러개 메모리에 올려놓고 작업하는데, 
+		  작업 중 DB가 중지되거나 전원이 꺼졌을 경우, 이미 생성되었던 시퀀스가 삭제되면서 그 다음 번호를 사용하며 문제가 발생
+		
+		ORDER : 요청 순서대로 값 생성시 발생 순서는 보장하지만 시스템의 부하 발생 가능성이 있음
+	-->
+	
+	<!-- 게시글 저장 -->
+	<insert id="insertBoard" parameterClass="boardVO">
+		
+		<!--
+			관계형 데이터베이스에서 지원하는 시퀀스와 scope_identity등을 활용해 
+			insert시 추가한 데이터의 기본키를 반환
+		 -->
+		<selectKey keyProperty="num" resultClass="int">
+		  SELECT BOARD_NUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO BOARD
+		VALUES(
+			#num#,
+			#subject#,
+			#writer#,
+			#mail#,
+			#password#,
+			#content#,
+			0,
+			#wip#,
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 댓글 저장 -->
+	<insert id="insertReply" parameterClass="replyVO">
+		<selectKey keyProperty="renum" resultClass="int">
+		  SELECT REPLY_RENUM_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO REPLY
+		VALUES(
+			#renum#,
+			#bonum#,	
+			#name#,	
+			#cont#,	
+			SYSDATE
+		)
+	</insert>
+	
+	<!-- 댓글 리스트 조회 -->
+	<select id="replyList" resultClass="replyVO" parameterClass="int" >
+	  SELECT * FROM REPLY WHERE BONUM = #data#
+	  ORDER BY RENUM
+	</select>
+	
+	<!-- 댓글 수정 -->
+	<update id="replyUpdate" parameterClass="replyVO">
+	  UPDATE REPLY
+		SET 
+			CONT = #cont#,
+			REDATE = SYSDATE
+	  WHERE RENUM = #renum#
+	</update>
+	
+	<!-- 댓글 삭제 -->
+	<delete id="replyDelete" parameterClass="int">
+	  DELETE REPLY WHERE RENUM = #data#
+	</delete>
+	
+	<!-- 게시글 수정/삭제 -->
+	<delete id="boardDelete" parameterClass="int">
+	  DELETE BOARD WHERE NUM = #data#
+	</delete>
+	
+	<update id="boardUpdate" parameterClass="boardVO">
+	  UPDATE BOARD
+		SET
+			CONTENT = #content#,
+			WDATE = SYSDATE
+	  WHERE NUM = #num#
+	</update>
+</sqlMap>
